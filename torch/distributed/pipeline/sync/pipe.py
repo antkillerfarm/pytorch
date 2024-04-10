@@ -126,6 +126,12 @@ class PipeSequential(nn.Sequential):
     def forward(self, *inputs):
         for module in self:
             if isinstance(inputs, Tuple):  # type: ignore[arg-type]
+                module_device = next(module.parameters()).device
+                inputs = list(inputs)
+                for index in range(len(inputs)):
+                    if inputs[index].device != module_device:
+                        inputs[index] = inputs[index].to(module_device)
+                inputs = tuple(inputs)
                 inputs = module(*inputs)
             else:
                 # Don't expand single variables (ex: lists/Tensor)
